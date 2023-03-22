@@ -1,0 +1,20 @@
+{
+  "default-registry": {
+    "kind": "git",
+    "repository": "https://github.com/Microsoft/vcpkg",
+    "baseline": "7e7c62d863b1bf599c1d104b76cd8b74475844d4"
+  },
+  "registries": [
+    {
+      "kind": "git",
+      "repository": "https://gitlab.com/colorglass/vcpkg-colorglass",
+      "baseline": "eb2f2bd143b8f7c52b57ef5a822163b56f7be7d6",
+      "packages": [
+        "commonlibsse-ng",
+        "gluino",
+        "script-extender-common",
+        "skse"
+      ]
+    }
+  ]
+}
