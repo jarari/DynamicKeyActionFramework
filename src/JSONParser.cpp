@@ -52,14 +52,30 @@ void JSONParser::ParseKeyActionJSON(const std::filesystem::path path) {
 				keyStr = Utils::SplitString(keys, ",", keys);
 			}
 		}
+		action.pairedSearchMode = Action::SEARCH_MODE::kNone;
+		lookup = (*actionIt).find("PairedSearchMode");
+		if (lookup != (*actionIt).end()) {
+			action.pairedSearchMode = (Action::SEARCH_MODE)lookup.value().get<int>();
+		}
+		action.pairedSearchDist = 0;
+		lookup = (*actionIt).find("PairedSearchDist");
+		if (lookup != (*actionIt).end()) {
+			action.pairedSearchDist = lookup.value().get<float>();
+			if (action.pairedSearchDist <= 0) {
+				logger::warn("Invalid value for PairedSearchDist. Search disabled.");
+				action.pairedSearchMode = Action::SEARCH_MODE::kNone;
+			}
+		}
 		lookup = (*actionIt).find("PairedTargetKeywords");
 		if (lookup != (*actionIt).end()) {
 			std::string keywords = lookup.value().get<std::string>();
+			logger::info("PairedTargetKeywords: {}", keywords.c_str());
 			std::string keywordStr = Utils::SplitString(keywords, ",", keywords);
 			while (keywordStr.length() > 0) {
 				TESForm* form = Utils::GetFormFromConfigString(keywordStr);
 				if (form && form->formType.get() == FormType::Keyword) {
 					action.pairedTargetKeywords.push_back(reinterpret_cast<BGSKeyword*>(form));
+					logger::info("\tAdded {}", form->GetFormEditorID());
 				}
 				keywordStr = Utils::SplitString(keywords, ",", keywords);
 			}
@@ -72,10 +88,13 @@ void JSONParser::ParseKeyActionJSON(const std::filesystem::path path) {
 				action.actionOrIdle = form;
 			}
 		}
-		lookup = (*actionIt).find("ActionAssociatedWithIdle");
+		else {
+			logger::warn("ActionOrIdle not found in the data.");
+		}
 		action.actionAssocIdle = DEFAULT_OBJECT::kActionIdle;
+		lookup = (*actionIt).find("ActionAssociatedWithIdle");
 		if (lookup != (*actionIt).end()) {
-			int defObj = std::stoi(lookup.value().get<std::string>());
+			int defObj = lookup.value().get<int>();
 			if (defObj >= 0 && defObj < DEFAULT_OBJECT::kTotal) {
 				action.actionAssocIdle = (DEFAULT_OBJECT)defObj;
 				logger::info("ActionAssociatedWithIdle: {}", defObj);
@@ -84,11 +103,18 @@ void JSONParser::ParseKeyActionJSON(const std::filesystem::path path) {
 				logger::warn("ActionAssociatedWithIdle out of range! Defaulting to ActionIdle");
 			}
 		}
+		action.pressDuration = 0;
 		lookup = (*actionIt).find("PressDuration");
 		if (lookup != (*actionIt).end()) {
 			action.pressDuration = lookup.value().get<float>();
-			logger::info("PressDuration: {}", action.pressDuration);
 		}
+		logger::info("PressDuration: {}", action.pressDuration);
+		action.priority = 0;
+		lookup = (*actionIt).find("Priority");
+		if (lookup != (*actionIt).end()) {
+			action.priority = lookup.value().get<int>();
+		}
+		logger::info("Priority: {}", action.priority);
 		if (ActionManager::GetSingleton()->AddAction(action)) {
 			logger::info("Action successfully added");
 		}
