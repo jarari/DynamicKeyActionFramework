@@ -43,4 +43,10 @@ namespace Utils {
 	RE::TESForm* GetFormFromConfigString(const std::string str);
 	bool PerformAction(RE::BGSAction* action, RE::Actor* actor);
 	bool PlayIdle(RE::TESIdleForm* idle, RE::Actor* actor, RE::DEFAULT_OBJECT action, RE::Actor* target);
+	RE::Actor* PickActor(RE::bhkPickData& pick, RE::TESObjectCELL* cell, RE::NiPoint3 origin, RE::NiPoint3 dir, float dist, RE::Actor* excludedActor = nullptr);
+	bool ActorHasKeywords(RE::Actor* actor, std::vector<RE::BGSKeyword*>& keywords);
+	RE::NiPoint3 ToDirectionVector(RE::NiMatrix3 mat);
+	RE::NiPoint3 ToUpVector(RE::NiMatrix3 mat);
+	RE::NiPoint3 ToRightVector(RE::NiMatrix3 mat);
+	void Normalize(RE::NiPoint3& p);
 }

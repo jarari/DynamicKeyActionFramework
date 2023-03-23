@@ -97,3 +97,73 @@ bool Utils::PlayIdle(TESIdleForm* idle, Actor* actor, DEFAULT_OBJECT action, Act
 	}
 	return false;
 }
+
+Actor* Utils::PickActor(bhkPickData& pick, TESObjectCELL* cell, NiPoint3 origin, NiPoint3 dir, float dist, Actor* excludedActor) {
+	if (!cell)
+		return nullptr;
+	bhkWorld* world = cell->GetbhkWorld();
+	if (!world)
+		return nullptr;
+
+	float fBS2HavokScale = bhkWorld::GetWorldScale();
+	pick.rayInput.from = origin * fBS2HavokScale;
+	pick.rayInput.to = (origin + dir * dist) * fBS2HavokScale;
+
+	uint32_t collisionGroup = (uint32_t)COL_LAYER::kProjectile;
+	if (excludedActor) {
+		excludedActor->GetCollisionFilterInfo(collisionGroup);
+	}
+	collisionGroup = collisionGroup >> 16;
+	pick.rayInput.filterInfo = (collisionGroup << 16) | (uint32_t)COL_LAYER::kCharController;
+
+	world->PickObject(pick);
+
+	if (pick.rayOutput.HasHit()) {
+		auto collidable = pick.rayOutput.rootCollidable;
+		if (collidable) {
+			TESObjectREFR* ref = TESHavokUtilities::FindCollidableRef(*collidable);
+			if (ref && ref->formType == FormType::ActorCharacter) {
+				return reinterpret_cast<Actor*>(ref);
+			}
+		}
+	}
+	return nullptr;
+}
+
+bool Utils::ActorHasKeywords(RE::Actor* actor, std::vector<RE::BGSKeyword*>& keywords) {
+	bool hasKeyword = true;
+	for (const auto& keyword : keywords) {
+		//logger::debug("Checking keyword {}", keyword->GetFormEditorID());
+		hasKeyword = actor->HasKeyword(keyword);
+		if (!hasKeyword)
+			break;
+	}
+	//logger::debug("HasKeyword {}", hasKeyword);
+	return hasKeyword;
+}
+
+NiPoint3 Utils::ToDirectionVector(NiMatrix3 mat) {
+	return NiPoint3(mat.entry[2][0], mat.entry[2][1], mat.entry[2][2]);
+}
+
+NiPoint3 Utils::ToUpVector(NiMatrix3 mat) {
+	return NiPoint3(mat.entry[1][0], mat.entry[1][1], mat.entry[1][2]);
+}
+
+NiPoint3 Utils::ToRightVector(NiMatrix3 mat) {
+	return NiPoint3(mat.entry[0][0], mat.entry[0][1], mat.entry[0][2]);
+}
+
+void Utils::Normalize(NiPoint3& p) {
+	float l = p.Length();
+	if (l == 0) {
+		p.x = 1;
+		p.y = 0;
+		p.z = 0;
+	}
+	else {
+		p.x /= l;
+		p.y /= l;
+		p.z /= l;
+	}
+}
