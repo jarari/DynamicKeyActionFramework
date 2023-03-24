@@ -101,8 +101,8 @@ void ActionManager::EvaluateAndPerformActions() {
 								if (process) {
 									float minAng = 5.f;
 									//logger::debug("Paired target keyword count {}", action->pairedTargetKeywords.size());
-									for (const auto& handle : process->aliveActorList) {
-										if (const auto actor = handle.get(); actor && actor.get() != Globals::p) {
+									for (const auto& handle : process->highActorHandles) {
+										if (const auto actor = handle.get(); actor && actor.get() != Globals::p && !actor->IsDead(true)) {
 											NiPoint3 actorPos = actor->GetPosition();
 											if (actorPos.GetDistance(playerPos) <= action->pairedSearchDist) {
 												if (action->pairedTargetKeywords.size() > 0
