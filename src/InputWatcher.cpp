@@ -1,5 +1,6 @@
 #include "InputWatcher.h"
 #include "ActionManager.h"
+#include "Globals.h"
 #include "Utils.h"
 
 using namespace RE;
@@ -38,7 +39,8 @@ BSEventNotifyControl InputWatcher::ProcessEvent(const InputEvents* evns, BSTEven
 
 				if (isPressed) {
 					ActionManager::GetSingleton()->OnKeyPressed(keyCode, duration);
-					ActionManager::GetSingleton()->EvaluateAndPerformActions();
+					if (Globals::ui->numPausesGame == 0 && Globals::p->GetActorRuntimeData().currentProcess)
+						ActionManager::GetSingleton()->EvaluateAndPerformActions();
 				}
 				else if (isReleased) {
 					ActionManager::GetSingleton()->OnKeyReleased(keyCode);
